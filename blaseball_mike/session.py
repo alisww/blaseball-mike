@@ -1,10 +1,11 @@
 import os
-import requests_cache
+import atexit
+import asyncio
 from json.decoder import JSONDecodeError
+from aiohttp_client_cache import CachedSession, CacheBackend
 
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 _SESSIONS_BY_EXPIRY = {}
-
 
 def session(expiry=0):
     """Get a caching HTTP session"""
@@ -14,16 +15,16 @@ def session(expiry=0):
         expiry = 0
 
     if expiry not in _SESSIONS_BY_EXPIRY:
-        _SESSIONS_BY_EXPIRY[expiry] = requests_cache.CachedSession(backend="memory", expire_after=expiry)
+        _SESSIONS_BY_EXPIRY[expiry] = CachedSession(cache=CacheBackend(expire_after=expiry))
     return _SESSIONS_BY_EXPIRY[expiry]
 
 
-def check_network_response(response):
+async def check_network_response(response):
     """Verify that network response is correct and is valid JSON"""
     response.raise_for_status()
 
     try:
-        data = response.json()
+        data = await response.json()
     except JSONDecodeError:
         raise ValueError("Network response is not valid JSON")
 

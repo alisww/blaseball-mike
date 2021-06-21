@@ -10,32 +10,32 @@ class SimulationData(Base):
     Represents the current simulation state.
     """
     @classmethod
-    def _get_fields(cls):
-        p = cls.load()
+    async def _get_fields(cls):
+        p = await cls.load()
         return [cls._from_api_conversion(x) for x in p.fields]
 
     @classmethod
-    def load(cls):
+    async def load(cls):
         """Returns the current simulation state"""
-        return cls(database.get_simulation_data())
+        return cls(await database.get_simulation_data())
 
     @classmethod
-    def load_at_time(cls, time):
+    async def load_at_time(cls, time):
         """Returns the simulation state at a given time"""
         if isinstance(time, str):
             time = parse(time)
 
-        updates = list(chronicler.get_entities("sim", at=time))
+        updates = list(await chronicler.get_entities("sim", at=time))
         if len(updates) == 0:
             return None
         return cls(dict(updates[0]["data"], timestamp=time))
 
     @Base.lazy_load("_league_id", cache_name="_league")
-    def league(self):
-        return League.load_by_id(self._league_id)
+    async def league(self):
+        return await League.load_by_id(self._league_id)
 
     @Base.lazy_load("_next_election_end")
-    def next_election_end(self):
+    async def next_election_end(self):
         return parse(self._next_election_end)
 
     @Base.lazy_load("_next_phase_time")

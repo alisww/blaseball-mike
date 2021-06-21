@@ -13,55 +13,55 @@ class Game(Base):
     Represents one blaseball game
     """
     @classmethod
-    def _get_fields(cls):
-        p = cls.load_by_id("1cbd9d82-89e6-46b2-9082-815f59e1a130")
+    async def _get_fields(cls):
+        p = await cls.load_by_id("1cbd9d82-89e6-46b2-9082-815f59e1a130")
         return [cls._from_api_conversion(x) for x in p.fields]
 
     @classmethod
-    def load_by_id(cls, id_):
+    async def load_by_id(cls, id_):
         """
         Load by ID
         """
-        return cls(database.get_game_by_id(id_))
+        return cls(await database.get_game_by_id(id_))
 
     @classmethod
-    def load_by_day(cls, season, day):
+    async def load_by_day(cls, season, day):
         """
         Load by in-game season and day. Season and Day are 1-indexed
         """
         return {
-            id_: cls(game) for id_, game in database.get_games(season, day).items()
+            id_: cls(game) for id_, game in (await database.get_games(season, day)).items()
         }
 
     @classmethod
-    def load_tournament_by_day(cls, tournament, day):
+    async def load_tournament_by_day(cls, tournament, day):
         """
         Loads all games played in a tournament on a given in-game day. Day is 1-indexed
         Tournament refers to things such as the Coffee Cup which exist outside the normal blaseball timeline.
         """
         return {
-            id_: cls(game) for id_, game in database.get_tournament(tournament, day).items()
+            id_: cls(game) for id_, game in (await database.get_tournament(tournament, day)).items()
         }
 
     @classmethod
-    def load_by_season(cls, season, team_id=None, day=None):
+    async def load_by_season(cls, season, team_id=None, day=None):
         """
         Return dictionary of games for a given season keyed by game ID.
         Can optionally be filtered by in-game day or team ID. Season and Day are 1-indexed
         """
         return {
-            game["gameId"]: cls(game["data"]) for game in chronicler.get_games(team_ids=team_id, season=season, day=day)
+            game["gameId"]: cls(game["data"]) for game in (await chronicler.get_games(team_ids=team_id, season=season, day=day))
         }
 
     @classmethod
-    def load_by_tournament(cls, tournament, team_id=None, day=None):
+    async def load_by_tournament(cls, tournament, team_id=None, day=None):
         """
         Return dictionary of games for a given tournament keyed by game ID.
         Can optionally be filtered by in-game day or team ID. Day is 1-indexed
         """
         return {
             game["gameId"]: cls(game["data"]) for game in
-            chronicler.get_games(team_ids=team_id, tournament=tournament, day=day)
+            (await chronicler.get_games(team_ids=team_id, tournament=tournament, day=day))
         }
 
     @property
@@ -97,37 +97,37 @@ class Game(Base):
         return self.home_score if self.home_score < self.away_score else self.away_score
 
     @Base.lazy_load("_base_runner_ids", cache_name="_base_runners", default_value=list())
-    def base_runners(self):
-        players = Player.load(*self._base_runner_ids)
+    async def base_runners(self):
+        players = await Player.load(*self._base_runner_ids)
         return [players.get(id_) for id_ in self._base_runner_ids]
 
     @Base.lazy_load("_weather", use_default=False)
-    def weather(self):
-        return Weather.load_one(self._weather)
+    async def weather(self):
+        return await Weather.load_one(self._weather)
 
     @Base.lazy_load("_home_team_id", cache_name="_home_team")
-    def home_team(self):
-        return Team.load(self._home_team_id)
+    async def home_team(self):
+        return await Team.load(self._home_team_id)
 
     @Base.lazy_load("_away_team_id", cache_name="_away_team")
-    def away_team(self):
-        return Team.load(self._away_team_id)
+    async def away_team(self):
+        return await Team.load(self._away_team_id)
 
     @Base.lazy_load("_home_pitcher_id", cache_name="_home_pitcher")
-    def home_pitcher(self):
-        return Player.load_one(self._home_pitcher_id)
+    async def home_pitcher(self):
+        return await Player.load_one(self._home_pitcher_id)
 
     @Base.lazy_load("_away_pitcher_id", cache_name="_away_pitcher")
-    def away_pitcher(self):
-        return Player.load_one(self._away_pitcher_id)
+    async def away_pitcher(self):
+        return await Player.load_one(self._away_pitcher_id)
 
     @Base.lazy_load("_home_batter_id", cache_name="_home_batter")
-    def home_batter(self):
-        return Player.load_one(self._home_batter_id)
+    async def home_batter(self):
+        return await Player.load_one(self._home_batter_id)
 
     @Base.lazy_load("_away_batter_id", cache_name="_away_batter")
-    def away_batter(self):
-        return Player.load_one(self._away_batter_id)
+    async def away_batter(self):
+        return await Player.load_one(self._away_batter_id)
 
     @property
     def at_bat_team(self):
@@ -212,12 +212,12 @@ class Game(Base):
         return self._inning + 1
 
     @Base.lazy_load("_statsheet_id", cache_name="_statsheet")
-    def statsheet(self):
-        return GameStatsheet.load(self._statsheet_id)[self._statsheet_id]
+    async def statsheet(self):
+        return await GameStatsheet.load(self._statsheet_id)[self._statsheet_id]
 
     @Base.lazy_load("_stadium_id", cache_name="_stadium")
-    def stadium_id(self):
-        return Stadium.load_one(self._stadium_id)
+    async def stadium_id(self):
+        return await Stadium.load_one(self._stadium_id)
 
     @property
     def stadium(self):
@@ -225,24 +225,24 @@ class Game(Base):
         return self.stadium_id
 
     @Base.lazy_load("_base_runner_mod_ids", cache_name="_base_runner_mods", default_value=list())
-    def base_runner_mods(self):
-        return Modification.load(*self._base_runner_mod_ids)
+    async def base_runner_mods(self):
+        return await Modification.load(*self._base_runner_mod_ids)
 
     @Base.lazy_load("_home_pitcher_mod_id", cache_name="_home_pitcher_mod", use_default=False)
-    def home_pitcher_mod(self):
-        return Modification.load_one(getattr(self, "_home_pitcher_mod_id", None))
+    async def home_pitcher_mod(self):
+        return await Modification.load_one(getattr(self, "_home_pitcher_mod_id", None))
 
     @Base.lazy_load("_home_batter_mod_id", cache_name="_home_batter_mod", use_default=False)
-    def home_batter_mod(self):
-        return Modification.load_one(getattr(self, "_home_batter_mod_id", None))
+    async def home_batter_mod(self):
+        return await Modification.load_one(getattr(self, "_home_batter_mod_id", None))
 
     @Base.lazy_load("_away_pitcher_mod_id", cache_name="_away_pitcher_mod", use_default=False)
-    def away_pitcher_mod(self):
-        return Modification.load_one(getattr(self, "_away_pitcher_mod_id", None))
+    async def away_pitcher_mod(self):
+        return await Modification.load_one(getattr(self, "_away_pitcher_mod_id", None))
 
     @Base.lazy_load("_away_batter_mod_id", cache_name="_away_batter_mod", use_default=False)
-    def away_batter_mod(self):
-        return Modification.load_one(getattr(self, "_away_batter_mod_id", None))
+    async def away_batter_mod(self):
+        return await Modification.load_one(getattr(self, "_away_batter_mod_id", None))
 
     @staticmethod
     def _payout_calc_discipline(odds, amount):

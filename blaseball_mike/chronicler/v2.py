@@ -10,7 +10,7 @@ from blaseball_mike.session import session, TIMESTAMP_FORMAT
 BASE_URL_V2 = 'https://api.sibr.dev/chronicler/v2'
 
 
-def get_entities(type_, id_=None, at=None, count=None, page_size=1000, cache_time=5):
+async def get_entities(type_, id_=None, at=None, count=None, page_size=1000, cache_time=5):
     """
     Chronicler V2 Entities endpoint
 
@@ -44,10 +44,10 @@ def get_entities(type_, id_=None, at=None, count=None, page_size=1000, cache_tim
         params["count"] = page_size
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL_V2}/entities', params=params, session=s, total_count=count, page_size=page_size, lazy=True)
+    return await paged_get(f'{BASE_URL_V2}/entities', params=params, session=s, total_count=count, page_size=page_size, lazy=True)
 
 
-def get_versions(type_, id_=None, before=None, after=None, order=None, count=None, page_size=1000, cache_time=5):
+async def get_versions(type_, id_=None, before=None, after=None, order=None, count=None, page_size=1000, cache_time=5):
     """
     Chronicler V2 Versions endpoint
 
@@ -86,4 +86,4 @@ def get_versions(type_, id_=None, before=None, after=None, order=None, count=Non
         params["count"] = page_size
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL_V2}/versions', params=params, session=s, total_count=count, page_size=page_size, lazy=True)
+    return await paged_get(f'{BASE_URL_V2}/versions', params=params, session=s, total_count=count, page_size=page_size, lazy=True)

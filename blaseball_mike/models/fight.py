@@ -10,8 +10,8 @@ from .. import tables, chronicler
 class Fight(Game):
     """Represents a Blaseball boss fight."""
     @classmethod
-    def _get_fields(cls):
-        p = cls.load_by_id("6754f45d-52a6-4b2f-b63c-15dcd520f8cf")
+    async def _get_fields(cls):
+        p = await cls.load_by_id("6754f45d-52a6-4b2f-b63c-15dcd520f8cf")
         return [cls._from_api_conversion(x) for x in p.fields]
 
     class DamageResults(Base):
@@ -19,28 +19,28 @@ class Fight(Game):
         Information regarding a specific damage event
         """
         @Base.lazy_load("_dmg_type")
-        def dmg_type(self):
+        async def dmg_type(self):
             return tables.DamageType(self._dmg_type)
 
         @Base.lazy_load("_player_source_id", cache_name="_player_source")
-        def player_source(self):
-            return Player.load_one(self._player_source_id)
+        async def player_source(self):
+            return await Player.load_one(self._player_source_id)
 
         @Base.lazy_load("_team_target_id", cache_name="_team_target")
-        def team_target(self):
-            return Team.load(self._team_target_id)
+        async def team_target(self):
+            return await Team.load(self._team_target_id)
 
     @classmethod
-    def load_by_id(cls, id_):
-        fights = list(chronicler.get_entities("bossfight", id_=id_))
+    async def load_by_id(cls, id_):
+        fights = list(await chronicler.get_entities("bossfight", id_=id_))
         if len(fights) != 1:
             return None
         return cls(fights[0]["data"])
 
     @classmethod
-    def load_by_season(cls, season):
+    async def load_by_season(cls, season):
         return {
-            x['id']: cls(x["data"]) for x in chronicler.get_fights(season=season)
+            x['id']: cls(x["data"]) for x in (await chronicler.get_fights(season=season))
         }
 
     @Base.lazy_load("_away_hp")

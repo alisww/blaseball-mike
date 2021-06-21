@@ -13,7 +13,7 @@ def prepare_id(id_):
         raise ValueError(f'Incorrect ID type: {type(id_)}')
 
 
-def paged_get(url, params, session, total_count=None, page_size=250, lazy=False):
+async def paged_get(url, params, session, total_count=None, page_size=250, lazy=False):
     """
     Combine paged URL responses
     """
@@ -26,7 +26,7 @@ def paged_get(url, params, session, total_count=None, page_size=250, lazy=False)
     params["count"] = page_size
     data = []
     while True:
-        out = check_network_response(session.get(url, params=params))
+        out = await check_network_response(await session.get(url, params=params))
         if "items" in out:
             d = out["items"]
         else:
@@ -50,7 +50,7 @@ def paged_get(url, params, session, total_count=None, page_size=250, lazy=False)
     return data
 
 
-def paged_get_lazy(url, params, session, total_count=None, page_size=250):
+async def paged_get_lazy(url, params, session, total_count=None, page_size=250):
     """
     Combine paged URL responses; returns a generator
     """
@@ -59,14 +59,16 @@ def paged_get_lazy(url, params, session, total_count=None, page_size=250):
 
     params["count"] = page_size
     while True:
-        out = check_network_response(session.get(url, params=params))
+        out = await check_network_response(await session.get(url, params=params))
         if "items" in out:
             d = out["items"]
         else:
             d = out.get("data", [])
         page = out.get("nextPage")
 
-        yield from d
+        async for v in d:
+            yield v
+            
         if page is None or len(d) == 0 or len(d) < page_size:
             break
 

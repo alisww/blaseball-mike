@@ -16,84 +16,84 @@ class Player(Base):
     Represents a blaseball player.
     """
     @classmethod
-    def _get_fields(cls):
-        p = cls.load_one("766dfd1e-11c3-42b6-a167-9b2d568b5dc0")
+    async def _get_fields(cls):
+        p = await cls.load_one("766dfd1e-11c3-42b6-a167-9b2d568b5dc0")
         return [cls._from_api_conversion(x) for x in p.fields]
 
     @classmethod
-    def load(cls, *ids):
+    async def load(cls, *ids):
         """
         Load one or more players by ID.
 
         Returns a dictionary of players keyed by Player ID.
         """
-        players = database.get_player(list(ids))
+        players = await database.get_player(list(ids))
         return {
             id_: cls(player) for (id_, player) in players.items()
         }
 
     @classmethod
-    def load_one(cls, id_):
+    async def load_one(cls, id_):
         """
         Load single player by ID.
         """
-        return cls.load(id_).get(id_)
+        return (await cls.load(id_)).get(id_)
 
     @classmethod
-    def load_one_at_time(cls, id_, time):
+    async def load_one_at_time(cls, id_, time):
         """
         Load single player by ID with historical stats at the provided IRL datetime.
         """
         if isinstance(time, str):
             time = parse(time)
 
-        players = list(chronicler.get_entities("player", id_=id_, at=time))
+        players = list(await chronicler.get_entities("player", id_=id_, at=time))
         if len(players) == 0:
             return None
         return cls(dict(players[0]["data"], timestamp=time))
 
     @classmethod
-    def load_all(cls):
+    async def load_all(cls):
         """
         Load all players
         """
-        players = chronicler.get_entities("player")
+        players = await chronicler.get_entities("player")
         return {x["entityId"]: cls(x["data"]) for x in players}
 
     @classmethod
-    def load_history(cls, id_, order='desc', count=None):
+    async def load_history(cls, id_, order='desc', count=None):
         """
         Returns array of Player stat changes with most recent first.
         """
-        players = chronicler.get_versions("player", id_=id_, order=order, count=count)
+        players = await chronicler.get_versions("player", id_=id_, order=order, count=count)
         return [cls(dict(p['data'], timestamp=p['validFrom'])) for p in players]
 
     @classmethod
-    def load_all_by_gameday(cls, season, day):
+    async def load_all_by_gameday(cls, season, day):
         """
         Returns dict of all players and their fk stats on the given season/day. 1-indexed.
         """
-        players = reference.get_all_players_for_gameday(season, day)
+        players = await reference.get_all_players_for_gameday(season, day)
         return {
             player['player_id']: cls(player) for player in players
         }
 
     @classmethod
-    def load_by_gameday(cls, id_, season, day):
+    async def load_by_gameday(cls, id_, season, day):
         """
         Returns one player and their fk stats on the given season/day. 1-indexed.
         """
-        return cls.load_all_by_gameday(season, day).get(id_)
+        return (await cls.load_all_by_gameday(season, day)).get(id_)
 
     @classmethod
-    def find_by_name(cls, name):
+    async def find_by_name(cls, name):
         """
         Try to find the player by their name (case sensitive) or return None.
         """
-        ids = reference.get_player_ids_by_name(name)
+        ids = await reference.get_player_ids_by_name(name)
         if not ids:
             return None
-        return cls.load_one(ids[0])
+        return await cls.load_one(ids[0])
 
     @classmethod
     def make_random(cls, name="Random Player", seed=None):
@@ -300,53 +300,53 @@ class Player(Base):
         return scream
 
     @Base.lazy_load("_blood_id", cache_name="_blood", use_default=False)
-    def blood(self):
+    async def blood(self):
         if isinstance(getattr(self, "_blood_id", None), str):
             return self._blood_id
-        return database.get_blood(getattr(self, "_blood_id", None))[0]
+        return (await database.get_blood(getattr(self, "_blood_id", None)))[0]
 
     @Base.lazy_load("_coffee_id", cache_name="_coffee", use_default=False)
-    def coffee(self):
+    async def coffee(self):
         if isinstance(getattr(self, "_coffee_id", None), str):
             return self._coffee_id
-        return database.get_coffee(getattr(self, "_coffee_id", None))[0]
+        return (await database.get_coffee(getattr(self, "_coffee_id", None)))[0]
 
     @Base.lazy_load("_bat_id", cache_name="_bat", use_default=False)
-    def bat(self):
-        return Item.load_one_discipline(getattr(self, "_bat_id", None))
+    async def bat(self):
+        return await Item.load_one_discipline(getattr(self, "_bat_id", None))
 
     @Base.lazy_load("_armor_id", cache_name="_armor", use_default=False)
-    def armor(self):
-        return Item.load_one_discipline(getattr(self, "_armor_id", None))
+    async def armor(self):
+        return await Item.load_one_discipline(getattr(self, "_armor_id", None))
 
     @Base.lazy_load("_items", default_value=list())
     def items(self):
         return [Item(x) for x in self._items]
 
     @Base.lazy_load("_perm_attr_ids", cache_name="_perm_attr", default_value=list())
-    def perm_attr(self):
-        return Modification.load(*self._perm_attr_ids)
+    async def perm_attr(self):
+        return await Modification.load(*self._perm_attr_ids)
 
     @Base.lazy_load("_seas_attr_ids", cache_name="_seas_attr", default_value=list())
-    def seas_attr(self):
-        return Modification.load(*self._seas_attr_ids)
+    async def seas_attr(self):
+        return await Modification.load(*self._seas_attr_ids)
 
     @Base.lazy_load("_week_attr_ids", cache_name="_week_attr", default_value=list())
-    def week_attr(self):
-        return Modification.load(*self._week_attr_ids)
+    async def week_attr(self):
+        return await Modification.load(*self._week_attr_ids)
 
     @Base.lazy_load("_game_attr_ids", cache_name="_game_attr", default_value=list())
-    def game_attr(self):
-        return Modification.load(*self._game_attr_ids)
+    async def game_attr(self):
+        return await Modification.load(*self._game_attr_ids)
 
     @Base.lazy_load("_item_attr_ids", cache_name="_item_attr", default_value=list())
-    def item_attr(self):
-        return Modification.load(*self._item_attr_ids)
+    async def item_attr(self):
+        return await Modification.load(*self._item_attr_ids)
 
     @Base.lazy_load("_league_team_id", cache_name="_league_team")
-    def league_team_id(self):
+    async def league_team_id(self):
         from .team import Team
-        return Team.load(self._league_team_id)
+        return await Team.load(self._league_team_id)
 
     @property
     def league_team(self):
@@ -354,9 +354,9 @@ class Player(Base):
         return self.league_team_id
 
     @Base.lazy_load("_tournament_team_id", cache_name="_tournament_team")
-    def tournament_team_id(self):
+    async def tournament_team_id(self):
         from .team import Team
-        return Team.load(self._tournament_team_id)
+        return await Team.load(self._tournament_team_id)
 
     @property
     def tournament_team(self):

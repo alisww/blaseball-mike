@@ -10,7 +10,7 @@ from blaseball_mike.session import session, check_network_response, TIMESTAMP_FO
 BASE_URL = 'https://api.sibr.dev/chronicler/v1'
 
 
-def get_games(season=None, tournament=None, day=None, team_ids=None, pitcher_ids=None, weather=None, started=None,
+async def get_games(season=None, tournament=None, day=None, team_ids=None, pitcher_ids=None, weather=None, started=None,
               finished=None, outcomes=None, order=None, count=None, before=None, after=None, cache_time=5):
     """
     Get Games
@@ -73,10 +73,10 @@ def get_games(season=None, tournament=None, day=None, team_ids=None, pitcher_ids
         params["weather"] = weather
 
     s = session(cache_time)
-    return check_network_response(s.get(f'{BASE_URL}/games', params=params)).get("data", [])
+    return await check_network_response(await s.get(f'{BASE_URL}/games', params=params)).get("data", [])
 
 
-def get_game_updates(season=None, tournament=None, day=None, game_ids=None, started=None, search=None, order=None,
+async def get_game_updates(season=None, tournament=None, day=None, game_ids=None, started=None, search=None, order=None,
                      count=None, before=None, after=None, page_size=1000, lazy=False, cache_time=5):
     """
     Get Game Updates
@@ -131,10 +131,10 @@ def get_game_updates(season=None, tournament=None, day=None, game_ids=None, star
         params["search"] = search
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL}/games/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
+    return await paged_get(f'{BASE_URL}/games/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
 
 
-def get_players(forbidden=None, incinerated=None, cache_time=5):
+async def get_players(forbidden=None, incinerated=None, cache_time=5):
     """
     Get all players
 
@@ -150,10 +150,10 @@ def get_players(forbidden=None, incinerated=None, cache_time=5):
         params["incinerated"] = incinerated
 
     s = session(cache_time)
-    return check_network_response(s.get(f'{BASE_URL}/players', params=params)).get("data", [])
+    return await check_network_response(await s.get(f'{BASE_URL}/players', params=params)).get("data", [])
 
 
-def get_player_names(*, cache_time=5):
+async def get_player_names(*, cache_time=5):
     """
     Get all player names
 
@@ -161,10 +161,10 @@ def get_player_names(*, cache_time=5):
         cache_time: response cache lifetime in seconds, or `None` for infinite cache
     """
     s = session(cache_time)
-    return check_network_response(s.get(f'{BASE_URL}/players/names'))
+    return await check_network_response(await s.get(f'{BASE_URL}/players/names'))
 
 
-def get_player_updates(ids=None, before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
+async def get_player_updates(ids=None, before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
     """
     Get player at time
 
@@ -200,10 +200,10 @@ def get_player_updates(ids=None, before=None, after=None, order=None, count=None
         params["player"] = prepare_id(ids)
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL}/players/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
+    return await paged_get(f'{BASE_URL}/players/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
 
 
-def get_teams(*, cache_time=5):
+async def get_teams(*, cache_time=5):
     """
     Get all Teams
 
@@ -211,10 +211,10 @@ def get_teams(*, cache_time=5):
         cache_time: response cache lifetime in seconds, or `None` for infinite cache
     """
     s = session(cache_time)
-    return check_network_response(s.get(f'{BASE_URL}/teams')).get("data", [])
+    return await check_network_response(await s.get(f'{BASE_URL}/teams')).get("data", [])
 
 
-def get_team_updates(ids=None, before=None, after=None, order=None, count=None, page_size=250, lazy=False, cache_time=5):
+async def get_team_updates(ids=None, before=None, after=None, order=None, count=None, page_size=250, lazy=False, cache_time=5):
     """
     Get team at time
 
@@ -250,10 +250,10 @@ def get_team_updates(ids=None, before=None, after=None, order=None, count=None, 
         params["team"] = prepare_id(ids)
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL}/teams/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
+    return await paged_get(f'{BASE_URL}/teams/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
 
 
-def get_roster_updates(team_ids=None, player_ids=None, before=None, after=None, order=None, count=None, page_size=1000,
+async def get_roster_updates(team_ids=None, player_ids=None, before=None, after=None, order=None, count=None, page_size=1000,
                        lazy=False, cache_time=5):
     """
     Get roster changes
@@ -293,10 +293,10 @@ def get_roster_updates(team_ids=None, player_ids=None, before=None, after=None, 
         params["team"] = prepare_id(team_ids)
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL}/roster/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
+    return await paged_get(f'{BASE_URL}/roster/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
 
 
-def get_tribute_updates(before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
+async def get_tribute_updates(before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
     """
     Get Hall of Flame at time
 
@@ -329,10 +329,10 @@ def get_tribute_updates(before=None, after=None, order=None, count=None, page_si
         params["count"] = page_size
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL}/tributes/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
+    return await paged_get(f'{BASE_URL}/tributes/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
 
 
-def time_map(season=None, tournament=None, day=None, include_nongame=True, cache_time=3600):
+async def time_map(season=None, tournament=None, day=None, include_nongame=True, cache_time=3600):
     """
     Map a season/day to a real-life timestamp
 
@@ -363,7 +363,7 @@ def time_map(season=None, tournament=None, day=None, include_nongame=True, cache
         day = day - 1
 
     s = session(cache_time)
-    results = check_network_response(s.get(f'{BASE_URL}/time/map'))['data']
+    results = await check_network_response(await s.get(f'{BASE_URL}/time/map'))['data']
 
     # Filter out desired events
     if tournament is not None:
@@ -389,7 +389,7 @@ def time_map(season=None, tournament=None, day=None, include_nongame=True, cache
     return results
 
 
-def time_season(season=None, tournament=None, cache_time=3600):
+async def time_season(season=None, tournament=None, cache_time=3600):
     """
     Return start/end times and number of days in a season
 
@@ -417,7 +417,7 @@ def time_season(season=None, tournament=None, cache_time=3600):
         season = season - 1
 
     s = session(cache_time)
-    results = check_network_response(s.get(f'{BASE_URL}/time/seasons')).get('data', [])
+    results = await check_network_response(await s.get(f'{BASE_URL}/time/seasons')).get('data', [])
 
     # Filter out desired events
     if tournament is not None:
@@ -439,7 +439,7 @@ def time_season(season=None, tournament=None, cache_time=3600):
     return results
 
 
-def get_fights(id_=None, season=0, cache_time=3600):
+async def get_fights(id_=None, season=0, cache_time=3600):
     """
     Return a list of boss fights
 
@@ -451,7 +451,7 @@ def get_fights(id_=None, season=0, cache_time=3600):
     season = season - 1
 
     s = session(cache_time)
-    data = check_network_response(s.get(f'{BASE_URL}/fights'))["data"]
+    data = await check_network_response(await s.get(f'{BASE_URL}/fights'))["data"]
     if id_:
         data = list(filter(lambda x: x['id'] == id_, data))
     if season > 1:
@@ -460,7 +460,7 @@ def get_fights(id_=None, season=0, cache_time=3600):
     return data
 
 
-def get_fight_updates(game_ids=None, before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
+async def get_fight_updates(game_ids=None, before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
     """
     Return a list of boss fight event updates
 
@@ -496,18 +496,18 @@ def get_fight_updates(game_ids=None, before=None, after=None, order=None, count=
         params["fight"] = prepare_id(game_ids)
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL}/fights/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
+    return await paged_get(f'{BASE_URL}/fights/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
 
 
-def get_stadiums(*, cache_time=3600):
+async def get_stadiums(*, cache_time=3600):
     """
     Return a list of stadiums
     """
     s = session(cache_time)
-    return s.get(f'{BASE_URL}/stadiums').json()['data']
+    return await s.get(f'{BASE_URL}/stadiums').json()['data']
 
 
-def get_temporal_updates(before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
+async def get_temporal_updates(before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
     """
     Return a list of temporal object updates
     This is generally used for God Speak (Coin, Monitor, etc)
@@ -541,10 +541,10 @@ def get_temporal_updates(before=None, after=None, order=None, count=None, page_s
         params["count"] = page_size
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL}/temporal/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
+    return await paged_get(f'{BASE_URL}/temporal/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
 
 
-def get_sim_updates(before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
+async def get_sim_updates(before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=5):
     """
     Return a list of simulation object updates
 
@@ -577,10 +577,10 @@ def get_sim_updates(before=None, after=None, order=None, count=None, page_size=1
         params["count"] = page_size
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL}/sim/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
+    return await paged_get(f'{BASE_URL}/sim/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
 
 
-def get_globalevent_updates(before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=600):
+async def get_globalevent_updates(before=None, after=None, order=None, count=None, page_size=1000, lazy=False, cache_time=600):
     """
     Return a list of global event object updates
 
@@ -613,13 +613,13 @@ def get_globalevent_updates(before=None, after=None, order=None, count=None, pag
         params["count"] = page_size
 
     s = session(cache_time)
-    return paged_get(f'{BASE_URL}/globalevents/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
+    return await paged_get(f'{BASE_URL}/globalevents/updates', params=params, session=s, total_count=count, page_size=page_size, lazy=lazy)
 
 
-def get_old_items(ids=None):
+async def get_old_items(ids=None):
     s = session(None)
-    res = s.get("https://raw.githubusercontent.com/xSke/blaseball-site-files/d111b4a5742b9e7c15a8592fca3f09d9134ff8d5/data/items.json")
-    data = check_network_response(res)
+    res = await s.get("https://raw.githubusercontent.com/xSke/blaseball-site-files/d111b4a5742b9e7c15a8592fca3f09d9134ff8d5/data/items.json")
+    data = await check_network_response(res)
     if isinstance(ids, list):
         data = list(filter(lambda x: x['id'] in ids, data))
         if len(data) == 0:

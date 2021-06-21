@@ -9,7 +9,7 @@ from blaseball_mike.session import session, check_network_response
 BASE_URL = 'https://api.sibr.dev/eventually'
 
 
-def search(cache_time=5, limit=100, query={}):
+async def search(cache_time=5, limit=100, query={}):
     """
     Search through feed events.
     Set to limit -1 to get everything.
@@ -21,7 +21,7 @@ def search(cache_time=5, limit=100, query={}):
     res_len = 0
 
     while limit == -1 or res_len < limit:
-        out = check_network_response(s.get(f"{BASE_URL}/events",params={'offset': res_len, 'limit': 100, **query}))
+        out = await check_network_response(await s.get(f"{BASE_URL}/events",params={'offset': res_len, 'limit': 100, **query}))
         out_len = len(out)
         if out_len < 100:
             yield from out

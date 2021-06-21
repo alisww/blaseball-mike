@@ -61,7 +61,7 @@ def _apply_type_map(blob):
     return res
 
 
-def get_player_ids_by_name(name, current=True, cache_time=3600):
+async def get_player_ids_by_name(name, current=True, cache_time=3600):
     """
     Returns the guid for a given player name.
 
@@ -74,11 +74,11 @@ def get_player_ids_by_name(name, current=True, cache_time=3600):
         List of player guids
     """
     s = session(cache_time)
-    players = s.get(f'{BASE_URL}/playerIdsByName?name={name}&current={current}')
-    return [r['player_id'] for r in check_network_response(players)]
+    players = await s.get(f'{BASE_URL}/playerIdsByName?name={name}&current={current}')
+    return [r['player_id'] for r in (await check_network_response(players))]
 
 
-def get_all_players_for_gameday(season, day, cache_time=600):
+async def get_all_players_for_gameday(season, day, cache_time=600):
     """
     Returns fk stats for all players on the given gameday.
 
@@ -95,11 +95,11 @@ def get_all_players_for_gameday(season, day, cache_time=600):
     if day < 1:
         raise ValueError("Day must be >= 1")
     s = session(cache_time)
-    players = s.get(f'{BASE_URL}/allPlayersForGameday?season={season - 1}&day={day - 1}')
-    return [_apply_type_map(p) for p in check_network_response(players)]
+    players = await s.get(f'{BASE_URL}/allPlayersForGameday?season={season - 1}&day={day - 1}')
+    return [_apply_type_map(p) for p in (await check_network_response(players))]
 
 
-def get_stat_leaders(season='current', group='hitting,pitching', cache_time=600):
+async def get_stat_leaders(season='current', group='hitting,pitching', cache_time=600):
     """
     Get season stat leaders from datablase.
 
@@ -143,11 +143,11 @@ def get_stat_leaders(season='current', group='hitting,pitching', cache_time=600)
         'group': group,
     }
     s = session(cache_time)
-    stats = s.get(f'{BASE_URL_V2}/stats/leaders', params=params)
-    return check_network_response(stats)
+    stats = await s.get(f'{BASE_URL_V2}/stats/leaders', params=params)
+    return (await check_network_response(stats))
 
 
-def get_stats(type_='season',
+async def get_stats(type_='season',
               group='hitting,pitching',
               fields=None,
               season='current',
@@ -270,5 +270,5 @@ def get_stats(type_='season',
         params['limit'] = limit
 
     s = session(cache_time)
-    stats = s.get(f'{BASE_URL_V2}/stats', params=params)
-    return check_network_response(stats)
+    stats = await s.get(f'{BASE_URL_V2}/stats', params=params)
+    return (await check_network_response(stats))
